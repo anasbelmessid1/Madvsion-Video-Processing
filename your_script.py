@@ -1,4 +1,4 @@
-%%writefile your_script.py
+
 # Your code starts here
 
 import os
