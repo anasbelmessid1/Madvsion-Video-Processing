@@ -24,12 +24,25 @@ def download_video(url, output_filename='input_video.mp4'):
     except Exception as e:
         print(f"An error occurred while downloading the video: {e}")
 
-def transcribe_with_groq(video_file):
-    # Transcribe the video using Groq's distil-whisper model
+from moviepy.editor import VideoFileClip
+
+def extract_audio(video_file, audio_file='input_audio.mp3'):
     try:
-        with open(video_file, "rb") as file:
+        video = VideoFileClip(video_file)
+        audio = video.audio
+        audio.write_audiofile(audio_file)
+        print(f"Audio extracted: {audio_file}")
+        return audio_file
+    except Exception as e:
+        print(f"An error occurred while extracting audio: {e}")
+        return None
+
+def transcribe_with_groq(audio_file):
+    # Transcribe the audio using Groq's distil-whisper model
+    try:
+        with open(audio_file, "rb") as file:
             transcription = client.audio.transcriptions.create(
-                file=(video_file, file.read()),
+                file=(audio_file, file.read()),
                 model="distil-whisper-large-v3-en",
                 response_format="verbose_json",
             )
@@ -116,16 +129,22 @@ if __name__ == "__main__":
     download_video(VIDEO_URL)
     video_file = 'input_video.mp4'
 
-    transcript = transcribe_with_groq(video_file)
-    if transcript:
-        insights_text = get_insightful_moments(transcript)
-        if insights_text:
-            insights = parse_insights(insights_text)
-            if insights:
-                extract_clips(video_file, insights)
+    # Extract audio from the video
+    audio_file = extract_audio(video_file)
+
+    if audio_file:
+        transcript = transcribe_with_groq(audio_file)
+        if transcript:
+            insights_text = get_insightful_moments(transcript)
+            if insights_text:
+                insights = parse_insights(insights_text)
+                if insights:
+                    extract_clips(video_file, insights)
+                else:
+                    print("No insights to extract clips from.")
             else:
-                print("No insights to extract clips from.")
+                print("Failed to generate insights.")
         else:
-            print("Failed to generate insights.")
+            print("Transcription failed.")
     else:
-        print("Transcription failed.")
+        print("Audio extraction failed.")
