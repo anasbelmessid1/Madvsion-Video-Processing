@@ -1,4 +1,4 @@
-openai
+groq
 moviepy
 requests
 boto3
