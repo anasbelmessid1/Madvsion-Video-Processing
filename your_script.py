@@ -15,14 +15,14 @@ VIDEO_URL = os.environ.get('VIDEO_URL')
 client = Groq(api_key=GROQ_API_KEY)
 
 # Define your functions
-
 def download_video(url, output_filename='input_video.mp4'):
-    response = requests.get(url, stream=True)
-    response.raise_for_status()
-    with open(output_filename, 'wb') as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
-    print(f"Video downloaded: {output_filename}")
+    try:
+        yt = YouTube(url)
+        stream = yt.streams.filter(progressive=True, file_extension='mp4').get_highest_resolution()
+        stream.download(filename=output_filename)
+        print(f"Video downloaded: {output_filename}")
+    except Exception as e:
+        print(f"An error occurred while downloading the video: {e}")
 
 def transcribe_with_groq(video_file):
     # Transcribe the video using Groq's distil-whisper model
