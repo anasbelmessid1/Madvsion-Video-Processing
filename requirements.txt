@@ -1,0 +1,6 @@
+openai
+moviepy
+requests
+boto3
+pytube
+whisper
